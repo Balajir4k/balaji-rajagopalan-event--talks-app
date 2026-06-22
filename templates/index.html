@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BigQuery Release Hub</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo-container">
+                    <div class="logo-icon">
+                        <i data-lucide="database" class="icon-gradient"></i>
+                        <span class="logo-pulse"></span>
+                    </div>
+                    <div>
+                        <h1>BigQuery Release Hub</h1>
+                        <p class="subtitle">Real-time tracker for Google Cloud BigQuery developments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="status-container">
+                    <span class="status-dot green" id="status-dot"></span>
+                    <span class="status-text" id="status-text">Checking cache...</span>
+                </div>
+                <button id="btn-refresh" class="btn btn-primary" title="Refresh Release Notes">
+                    <i data-lucide="refresh-cw" id="refresh-icon"></i>
+                    <span>Refresh</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Overview Panel -->
+        <section class="stats-overview">
+            <div class="stat-card" data-filter="all">
+                <div class="stat-icon-wrapper blue">
+                    <i data-lucide="layers"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Total Releases</span>
+                    <span class="stat-value" id="stat-total">-</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="Feature">
+                <div class="stat-icon-wrapper green">
+                    <i data-lucide="sparkles"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Features</span>
+                    <span class="stat-value" id="stat-features">-</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="Announcement">
+                <div class="stat-icon-wrapper cyan">
+                    <i data-lucide="megaphone"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Announcements</span>
+                    <span class="stat-value" id="stat-announcements">-</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="Issue">
+                <div class="stat-icon-wrapper red">
+                    <i data-lucide="alert-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Issues</span>
+                    <span class="stat-value" id="stat-issues">-</span>
+                </div>
+            </div>
+            <div class="stat-card" data-filter="Breaking">
+                <div class="stat-icon-wrapper orange">
+                    <i data-lucide="zap-off"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">Breaking / Changes</span>
+                    <span class="stat-value" id="stat-changes">-</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            <!-- Left Panel / Filters & Search -->
+            <aside class="sidebar">
+                <div class="sticky-sidebar">
+                    <!-- Search & Filter Card -->
+                    <div class="card panel-card">
+                        <h3 class="panel-title">
+                            <i data-lucide="sliders-horizontal"></i> Filters & Search
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="search-input">Search Updates</label>
+                            <div class="search-input-wrapper">
+                                <i data-lucide="search" class="search-icon"></i>
+                                <input type="text" id="search-input" placeholder="Type keywords, features, functions..." autocomplete="off">
+                                <button id="btn-clear-search" class="btn-clear" style="display: none;">
+                                    <i data-lucide="x"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Update Categories</label>
+                            <div class="filter-tags" id="filter-tags">
+                                <button class="filter-tag active" data-type="all">All Updates</button>
+                                <button class="filter-tag" data-type="Feature">Features</button>
+                                <button class="filter-tag" data-type="Announcement">Announcements</button>
+                                <button class="filter-tag" data-type="Issue">Issues</button>
+                                <button class="filter-tag" data-type="Change">Changes</button>
+                                <button class="filter-tag" data-type="Breaking">Breaking</button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sort-select">Sort Order</label>
+                            <div class="select-wrapper">
+                                <i data-lucide="arrow-up-down" class="select-icon"></i>
+                                <select id="sort-select">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Helpful Stats details / Quick Help -->
+                    <div class="card panel-card help-card">
+                        <h3><i data-lucide="info"></i> Quick Tip</h3>
+                        <p>Click on any update block below to highlight it. You can review updates, filter them by categories, and tweet the update dynamically with pre-generated status templates matching the 280-character limit.</p>
+                        <div class="help-links">
+                            <a href="https://docs.cloud.google.com/bigquery/docs/release-notes" target="_blank" class="help-link">
+                                <span>Official Release Notes</span>
+                                <i data-lucide="external-link"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Feed Section -->
+            <section class="feed-section">
+                <!-- Toolbar -->
+                <div class="feed-toolbar">
+                    <div class="results-count" id="results-count">Loading updates...</div>
+                    <div class="selected-action-bar" id="selected-action-bar" style="display: none;">
+                        <span class="selected-text" id="selected-text">1 update selected</span>
+                        <button id="btn-tweet-selected" class="btn btn-accent btn-sm">
+                            <i data-lucide="twitter"></i> Tweet Selected
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Spinner / Loading skeleton -->
+                <div class="loading-state" id="loading-state">
+                    <div class="spinner"></div>
+                    <p>Fetching BigQuery release notes...</p>
+                </div>
+
+                <!-- Error State -->
+                <div class="error-state" id="error-state" style="display: none;">
+                    <i data-lucide="alert-triangle"></i>
+                    <h3>Failed to load release notes</h3>
+                    <p id="error-message">Something went wrong while connecting to the backend feed server.</p>
+                    <button id="btn-retry" class="btn btn-secondary mt-3">Try Again</button>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <i data-lucide="folder-open"></i>
+                    <h3>No matching updates found</h3>
+                    <p>Try modifying your keywords or clear your active filters.</p>
+                    <button id="btn-reset-filters" class="btn btn-secondary mt-3">Clear Search & Filters</button>
+                </div>
+
+                <!-- Update Timeline -->
+                <div class="timeline" id="timeline" style="display: none;">
+                    <!-- Timeline items will be generated dynamically by JS -->
+                </div>
+            </section>
+        </main>
+        
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>BigQuery Release Hub &copy; 2026. Made with Flask, HTML, CSS, and Vanilla JS.</p>
+        </footer>
+    </div>
+
+    <!-- Tweet Composer Modal -->
+    <div class="modal-backdrop" id="tweet-modal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>
+                    <i data-lucide="twitter" class="tweet-logo"></i>
+                    <span>Compose Tweet</span>
+                </h3>
+                <button class="btn-close" id="btn-close-modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Source reference -->
+                <div class="tweet-source-ref">
+                    <span class="source-label" id="modal-source-label">FEATURE</span>
+                    <span class="source-date" id="modal-source-date">June 17, 2026</span>
+                </div>
+                
+                <!-- Preview area -->
+                <div class="form-group">
+                    <label for="tweet-textarea">Tweet text (max 280 chars)</label>
+                    <textarea id="tweet-textarea" rows="6" placeholder="What's happening?"></textarea>
+                    
+                    <div class="tweet-meta-actions">
+                        <!-- Format template buttons -->
+                        <div class="template-selector">
+                            <span class="template-label">Template:</span>
+                            <button class="btn-template active" data-template="casual">Casual</button>
+                            <button class="btn-template" data-template="professional">Professional</button>
+                            <button class="btn-template" data-template="short">Minimalist</button>
+                        </div>
+                        
+                        <!-- Char Counter -->
+                        <div class="char-counter" id="char-counter">0 / 280</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-copy-tweet">
+                    <i data-lucide="copy"></i> Copy to Clipboard
+                </button>
+                <button class="btn btn-accent" id="btn-share-tweet">
+                    <i data-lucide="send"></i> Post on X / Twitter
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast" style="display: none;">
+        <i data-lucide="check" class="toast-icon"></i>
+        <span class="toast-message" id="toast-message">Copied to clipboard!</span>
+    </div>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        // Initial setup for static elements
+        lucide.createIcons();
+    </script>
+    <!-- App Script -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
