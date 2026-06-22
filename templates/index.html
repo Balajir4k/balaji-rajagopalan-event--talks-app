@@ -131,6 +131,19 @@
                         </div>
 
                         <div class="form-group">
+                            <label for="date-filter-select">Date Range</label>
+                            <div class="select-wrapper">
+                                <i data-lucide="calendar-range" class="select-icon"></i>
+                                <select id="date-filter-select">
+                                    <option value="all">All Time</option>
+                                    <option value="30days">Last 30 Days</option>
+                                    <option value="this-quarter">This Quarter</option>
+                                    <option value="this-year">This Year (2026)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
                             <label for="sort-select">Sort Order</label>
                             <div class="select-wrapper">
                                 <i data-lucide="arrow-up-down" class="select-icon"></i>
@@ -263,6 +276,11 @@
         <i data-lucide="check" class="toast-icon"></i>
         <span class="toast-message" id="toast-message">Copied to clipboard!</span>
     </div>
+
+    <!-- Back to Top Button -->
+    <button id="btn-back-to-top" class="btn-back-to-top" title="Go to Top">
+        <i data-lucide="arrow-up"></i>
+    </button>
 
     <!-- Initialize Lucide Icons -->
     <script>

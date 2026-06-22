@@ -1254,3 +1254,51 @@ h1 {
         width: 100%;
     }
 }
+
+/* --- Back to Top Button --- */
+.btn-back-to-top {
+    position: fixed;
+    bottom: 90px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(15px);
+    transition: var(--transition-normal);
+    z-index: 999;
+}
+
+.btn-back-to-top:hover {
+    background-color: var(--color-primary);
+    color: #ffffff;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 15px rgba(var(--color-primary-rgb), 0.35);
+    transform: translateY(-2px);
+}
+
+.btn-back-to-top.show {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.btn-back-to-top i {
+    width: 20px;
+    height: 20px;
+}
+
+body.light-theme .btn-back-to-top {
+    background-color: #ffffff;
+    color: #475569;
+}
+

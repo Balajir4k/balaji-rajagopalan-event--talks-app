@@ -6,6 +6,7 @@ let activeFilter = 'all';
 let searchQuery = '';
 let sortOrder = 'newest';
 let activeTemplate = 'casual';
+let dateFilter = 'all';
 
 // DOM Elements
 const btnRefresh = document.getElementById('btn-refresh');
@@ -40,6 +41,9 @@ const timeline = document.getElementById('timeline');
 const btnThemeToggle = document.getElementById('btn-theme-toggle');
 const themeIcon = document.getElementById('theme-icon');
 const btnExportCsv = document.getElementById('btn-export-csv');
+
+const dateFilterSelect = document.getElementById('date-filter-select');
+const btnBackToTop = document.getElementById('btn-back-to-top');
 
 // Modal Elements
 const tweetModal = document.getElementById('tweet-modal');
@@ -163,6 +167,28 @@ function setupEventListeners() {
 
     // Export CSV
     btnExportCsv.addEventListener('click', exportToCSV);
+
+    // Date range filter select
+    dateFilterSelect.addEventListener('change', (e) => {
+        dateFilter = e.target.value;
+        filterAndRender();
+    });
+
+    // Global Keyboard Shortcuts
+    document.addEventListener('keydown', handleGlobalKeydown);
+
+    // Back to Top Scroll watcher
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 300) {
+            btnBackToTop.classList.add('show');
+        } else {
+            btnBackToTop.classList.remove('show');
+        }
+    });
+
+    btnBackToTop.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
 }
 
 // Fetch release notes
@@ -278,16 +304,27 @@ function filterAndRender() {
             }
         }
         
-        // Search query filter
-        let searchMatch = true;
-        if (searchQuery) {
-            const inDate = update.date.toLowerCase().includes(searchQuery);
-            const inType = update.type.toLowerCase().includes(searchQuery);
-            const inText = update.text.toLowerCase().includes(searchQuery);
-            searchMatch = inDate || inType || inText;
+        // Date range filter
+        let dateMatch = true;
+        if (dateFilter !== 'all') {
+            const updateDate = new Date(update.isoDate);
+            const currentDate = new Date();
+            const diffTime = Math.abs(currentDate - updateDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (dateFilter === '30days') {
+                dateMatch = diffDays <= 30;
+            } else if (dateFilter === 'this-quarter') {
+                const currentMonth = currentDate.getMonth(); // 0-indexed
+                const currentQuarterStartMonth = Math.floor(currentMonth / 3) * 3;
+                const quarterStartDate = new Date(currentDate.getFullYear(), currentQuarterStartMonth, 1);
+                dateMatch = updateDate >= quarterStartDate;
+            } else if (dateFilter === 'this-year') {
+                dateMatch = updateDate.getFullYear() === currentDate.getFullYear();
+            }
         }
         
-        return categoryMatch && searchMatch;
+        return categoryMatch && searchMatch && dateMatch;
     });
 
     // Sorting
@@ -473,6 +510,8 @@ function resetAllFilters() {
     activeFilter = 'all';
     sortSelect.value = 'newest';
     sortOrder = 'newest';
+    dateFilterSelect.value = 'all';
+    dateFilter = 'all';
     
     filterAndRender();
 }
@@ -674,4 +713,90 @@ function toggleTheme() {
         showToast('Swapped to dark theme');
     }
     lucide.createIcons();
+}
+
+// Global Keyboard Shortcuts handler
+function handleGlobalKeydown(e) {
+    // 1. Skip if user is typing in form inputs or textarea
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') {
+        // Still allow Escape to close modal even if focused on modal textarea
+        if (e.key === 'Escape' && tweetModal.style.display === 'flex') {
+            closeTweetComposer();
+        }
+        return;
+    }
+
+    // 2. Handle escape key
+    if (e.key === 'Escape') {
+        if (tweetModal.style.display === 'flex') {
+            closeTweetComposer();
+        } else if (selectedUpdateId) {
+            // Deselect card
+            const selectedCard = document.querySelector(`.timeline-card.selected`);
+            if (selectedCard) selectedCard.classList.remove('selected');
+            selectedUpdateId = null;
+            updateSelectedActionBar();
+        }
+        return;
+    }
+
+    // 3. Prevent actions if modal is open
+    if (tweetModal.style.display === 'flex') return;
+
+    // 4. J or ArrowDown / K or ArrowUp to navigate cards
+    if (e.key === 'j' || e.key === 'ArrowDown' || e.key === 'k' || e.key === 'ArrowUp') {
+        e.preventDefault(); // prevent window scroll
+        const cards = Array.from(document.querySelectorAll('.timeline-card'));
+        if (cards.length === 0) return;
+
+        let currentIndex = cards.findIndex(c => c.dataset.id === selectedUpdateId);
+        let newIndex = 0;
+
+        if (e.key === 'j' || e.key === 'ArrowDown') {
+            // Move down
+            if (currentIndex !== -1 && currentIndex < cards.length - 1) {
+                newIndex = currentIndex + 1;
+            } else {
+                newIndex = 0;
+            }
+        } else {
+            // Move up
+            if (currentIndex !== -1 && currentIndex > 0) {
+                newIndex = currentIndex - 1;
+            } else {
+                newIndex = cards.length - 1;
+            }
+        }
+
+        const newCard = cards[newIndex];
+        const newId = newCard.dataset.id;
+        
+        // Select new card
+        if (selectedUpdateId) {
+            const oldCard = document.querySelector(`.timeline-card[data-id="${selectedUpdateId}"]`);
+            if (oldCard) oldCard.classList.remove('selected');
+        }
+        selectedUpdateId = newId;
+        newCard.classList.add('selected');
+        updateSelectedActionBar();
+
+        // Scroll card into view
+        newCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // 5. C to copy selected card text
+    if (e.key === 'c' || e.key === 'C') {
+        if (selectedUpdateId) {
+            const updateObj = allUpdates.find(u => u.id === selectedUpdateId);
+            if (updateObj) copyCardText(updateObj.text);
+        }
+    }
+
+    // 6. T to tweet selected card
+    if (e.key === 't' || e.key === 'T') {
+        if (selectedUpdateId) {
+            const updateObj = allUpdates.find(u => u.id === selectedUpdateId);
+            if (updateObj) openTweetComposer(updateObj);
+        }
+    }
 }
