@@ -33,6 +33,9 @@
                 </div>
             </div>
             <div class="header-right">
+                <button id="btn-theme-toggle" class="btn btn-secondary" title="Toggle Light/Dark Theme" style="padding: 8px 12px;">
+                    <i data-lucide="sun" id="theme-icon"></i>
+                </button>
                 <div class="status-container">
                     <span class="status-dot green" id="status-dot"></span>
                     <span class="status-text" id="status-text">Checking cache...</span>
@@ -158,11 +161,16 @@
                 <!-- Toolbar -->
                 <div class="feed-toolbar">
                     <div class="results-count" id="results-count">Loading updates...</div>
-                    <div class="selected-action-bar" id="selected-action-bar" style="display: none;">
-                        <span class="selected-text" id="selected-text">1 update selected</span>
-                        <button id="btn-tweet-selected" class="btn btn-accent btn-sm">
-                            <i data-lucide="twitter"></i> Tweet Selected
+                    <div class="toolbar-right" style="display: flex; align-items: center; gap: 12px;">
+                        <button id="btn-export-csv" class="btn btn-secondary btn-sm" title="Export Current List to CSV" style="display: none;">
+                            <i data-lucide="download"></i> Export CSV
                         </button>
+                        <div class="selected-action-bar" id="selected-action-bar" style="display: none; align-items: center; gap: 12px;">
+                            <span class="selected-text" id="selected-text">1 update selected</span>
+                            <button id="btn-tweet-selected" class="btn btn-accent btn-sm">
+                                <i data-lucide="twitter"></i> Tweet Selected
+                            </button>
+                        </div>
                     </div>
                 </div>
 
